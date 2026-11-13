@@ -28,6 +28,10 @@ button:active{transform:scale(.97)}
 .bar i{display:block;height:100%;background:var(--ac);width:100%}
 .mu{color:var(--mu);font-size:.85rem}
 .fp{font-weight:800;color:var(--ac);letter-spacing:.15em}
+.qr{background:#fff;border-radius:16px;padding:14px;margin:12px auto;width:min(260px,100%);display:none}
+.qr svg,.qr img,.qr canvas{width:100%!important;height:auto!important;display:block}
+.rules{text-align:left;font-size:1.05rem;line-height:1.5;padding:8px 6px}.rules li{margin:10px 0}
+.url{word-break:break-all;font-size:.75rem;color:var(--mu);text-align:center}
 .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 10px}
 .btns button{padding:26px 8px;font-size:1.3rem}
 </style>
@@ -53,8 +57,16 @@ button:active{transform:scale(.97)}
   <h1 id="rTitle"></h1>
   <p class="s">Round <b id="rRound"></b> · Check code <span class="fp" id="rFp"></span><br>Both phones must show the same check code. If not, re-enter the seed code and settings.</p>
   <div class="card"><div class="mu">Both players tap Start together</div><div class="big" id="cd" style="font-size:3rem">Ready?</div></div>
-  <button id="start">Start</button>
+  <div class="row" style="margin-bottom:10px"><button class="alt" id="rulesB">📖 My rules</button><button class="alt" id="qrB">📱 Room QR</button></div>
+  <div class="qr" id="qr"></div><div class="url" id="qrUrl"></div>
+  <button id="start" style="margin-top:10px">Start</button>
   <button class="alt" id="back" style="margin:10px 0 16px">Back</button>
+</div>
+
+<div id="rules" class="screen">
+  <h1 id="ruT"></h1>
+  <div class="card" style="justify-content:flex-start"><ul class="rules" id="ruL"></ul></div>
+  <button id="ruBack" style="margin:0 0 16px">Got it – back</button>
 </div>
 
 <div id="play" class="screen">
@@ -73,6 +85,7 @@ button:active{transform:scale(.97)}
   <button class="alt" id="menu" style="margin-bottom:16px">Change settings</button>
 </div>
 
+<script src="qrcode.js"></script>
 <script src="room-seeder.js"></script>
 <script>
 const WORDS=`apple anchor angel arrow attic autumn bacon badge bakery balloon banana barn basket beach beard bell bench bicycle bird blanket boat bone book boot bottle bowl branch bread bridge broom brush bubble bucket button cabin cactus cake camel camera candle canyon carpet castle cave chair cheese cherry chicken chimney circus clock cloud clown coconut coffee comet compass cookie copper cotton cow crab crayon crown cupboard curtain dagger dancer desert diamond dinosaur doctor dolphin donkey dragon drawer dress drum duck eagle earth engine fabric factory farmer feather fence ferry field finger fire fish flag flower forest fork fountain fox frog garden garlic ghost giant giraffe glove goat gold grape grass guitar hammer harbor hat hawk helmet honey horse hospital hotel island jacket jelly jewel jungle kettle key kitchen kite knife ladder lake lamp lemon lettuce library lighthouse lion lizard lobster magnet mango map market mask meadow melon mirror monkey moon mountain mouse mushroom needle nest night noodle ocean onion orange oven owl paddle painter palace panda paper parade parrot peach pearl pencil penguin piano pickle pillow pilot pirate pizza planet plate pocket potato pumpkin puzzle queen rabbit radio rainbow raven river robot rocket roof rope saddle sailor salad sandwich scarf school scissors shadow shark sheep shell shield ship shoe shovel silver singer skeleton snake snow soldier spider spoon squirrel stairs star statue storm street sugar summer sunset swamp sword table teacher tent thunder ticket tiger toast tomato tower tractor train treasure tree trumpet tunnel turtle umbrella valley vase village violin volcano wagon wallet walnut watch water whale wheel whistle window winter wizard wolf yacht zebra
@@ -95,7 +108,7 @@ function prep(){
   S.i=0;S.score=0;S.hist=[];
   $('rTitle').textContent=S.role==='give'?'🗣 You are the Clue-giver':'🤔 You are the Guesser';
   $('rRound').textContent=S.round;$('rFp').textContent=RoomSeeder.fingerprint(S.deck)+'-'+S.target+'/'+S.total;
-  $('cd').textContent='Ready?';$('start').disabled=false;
+  $('qr').style.display='none';$('qrUrl').textContent='';$('cd').textContent='Ready?';$('start').disabled=false;
   show('ready');
 }
 $('go').onclick=()=>{if(!RoomSeeder.normalize($('code').value)){$('code').focus();return}S.round=1;prep()};
@@ -108,6 +121,53 @@ $('start').onclick=()=>{
   $('start').disabled=true;let n=3;$('cd').textContent=n;
   const c=setInterval(()=>{n--;if(n>0)$('cd').textContent=n;else{clearInterval(c);begin()}},1000);
 };
+function rulesFor(r){
+  const g=[`You see the <b>full word</b>. Your partner sees only its <b>first letter</b>.`,
+  `Give <b>one-word clues</b>, one at a time. Your partner guesses out loud.`,
+  `No part of the word, no rhymes, no spelling or letter hints, no gestures.`,
+  `Tap <b>✓ Correct</b> when they get it, or <b>Pass</b> to skip a tough one.`,
+  `Goal: <b>${S.target} words</b> in <b>${S.total} seconds</b>, one shared clock.`,
+  `Tap Start at the same moment as your partner, and tap in step with them.`];
+  const q=[`You see only the <b>first letter</b> of the secret word.`,
+  `Your partner gives <b>one-word clues</b>. Guess out loud as often as you like.`,
+  `Use the letter to narrow it down – it's the start of the word.`,
+  `Tap <b>✓ Got it</b> when you're right, or <b>Pass</b> if your partner skips.`,
+  `Goal: <b>${S.target} words</b> in <b>${S.total} seconds</b>, one shared clock.`,
+  `Tap Start at the same moment as your partner, and tap in step with them.`];
+  return r==='give'?g:q;
+}
+$('rulesB').onclick=()=>{
+  $('ruT').textContent=S.role==='give'?'🗣 Clue-giver rules':'🤔 Guesser rules';
+  $('ruL').innerHTML=rulesFor(S.role).map(x=>'<li>'+x+'</li>').join('');show('rules');
+};
+$('ruBack').onclick=()=>show('ready');
+
+function makeQR(el,text){
+  el.innerHTML='';
+  try{
+    if(typeof qrcode==='function'){const q=qrcode(0,'M');q.addData(text);q.make();el.innerHTML=q.createSvgTag?q.createSvgTag(6,0):q.createImgTag(6);}
+    else if(typeof QRCode==='function'){new QRCode(el,{text,width:240,height:240});}
+    else el.innerHTML='<div style="color:#000">qrcode.js not found next to this file.</div>';
+  }catch(e){el.innerHTML='<div style="color:#000">QR error: '+e.message+'</div>'}
+}
+$('qrB').onclick=()=>{
+  const q=$('qr');
+  if(q.style.display==='block'){q.style.display='none';$('qrUrl').textContent='';return}
+  const base=location.href.split(/[?#]/)[0];
+  const url=base+'?code='+encodeURIComponent(S.code)+'&words='+S.target+'&secs='+S.total+'&role='+(S.role==='give'?'guess':'give');
+  q.style.display='block';makeQR(q,url);
+  $('qrUrl').textContent=url+(location.protocol==='file:'?'  (file:// links only work if both phones have the file at this same path – host the page for cross-device scanning)':'');
+};
+
+// prefill from room URL (?code=&words=&secs=&role=)
+(function(){
+  const u=new URLSearchParams(location.search);
+  if(u.get('code'))$('code').value=u.get('code');
+  if(u.get('words'))$('target').value=u.get('words');
+  if(u.get('secs'))$('secs').value=u.get('secs');
+  if(u.get('role'))setRole(u.get('role')==='guess'?'guess':'give');
+})();
+
 function begin(){
   show('play');S.end=Date.now()+S.total*1000;render();
   S.tick=setInterval(()=>{
