@@ -5,44 +5,100 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Password – 2 Player</title>
 <style>
-:root{--bg:#14110f;--card:#221d19;--tx:#f5ede6;--mu:#9a8d82;--ac:#ff8a2b;--ok:#2fb86a;--no:#d9534f}
+:root{--ac:#ff8a2b;--ac2:#ffb15e;--tx:#f5efe9;--mu:#a79bb0;--card:rgba(255,255,255,.07);--line:rgba(255,255,255,.14)}
+body.role-give{--ac:#ff8a2b;--ac2:#ffb15e}
+body.role-guess{--ac:#2ec4b6;--ac2:#7af0e3}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--tx);font-family:system-ui,sans-serif;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);display:flex;flex-direction:column;max-width:480px;margin:auto}
-h1{font-size:1.5rem;margin:18px 0 4px;color:var(--ac)}
-p.s{color:var(--mu);margin:0 0 16px;font-size:.9rem}
-label{display:block;font-size:.8rem;color:var(--mu);margin:14px 0 6px}
-input{width:100%;padding:14px;font-size:1.1rem;border-radius:12px;border:2px solid #3a322b;background:var(--card);color:var(--tx)}
-input.code{text-transform:uppercase;letter-spacing:.2em;text-align:center;font-size:1.4rem}
+body{color:var(--tx);font-family:system-ui,sans-serif;
+ background:radial-gradient(90% 55% at 50% 0%,color-mix(in srgb,var(--ac) 28%,transparent),transparent 70%),
+ radial-gradient(70% 50% at 50% 100%,color-mix(in srgb,var(--ac) 14%,transparent),transparent 70%),linear-gradient(180deg,#1b1526,#0c0a12);
+ background-attachment:fixed;transition:background .4s}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.07;z-index:0;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+.app{position:relative;z-index:1;max-width:480px;height:100%;margin:auto;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);display:flex;flex-direction:column}
+h1{font-size:1.5rem;margin:18px 0 4px;color:var(--ac2)}
+p.s{color:var(--mu);margin:0 0 12px;font-size:.9rem}
+label{display:block;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mu);margin:14px 0 6px}
+input{width:100%;padding:14px;font-size:1.1rem;border-radius:12px;border:2px solid var(--line);background:rgba(0,0,0,.3);color:var(--tx)}
 .row{display:flex;gap:10px}.row>*{flex:1}
-button{font:inherit;font-weight:700;border:0;border-radius:14px;padding:16px;color:#fff;background:var(--ac);font-size:1.05rem}
-button.alt{background:var(--card);border:2px solid #3a322b}
-button.sel{border-color:var(--ac);color:var(--ac)}
-button.ok{background:var(--ok)}button.no{background:var(--no)}
-button:active{transform:scale(.97)}
-.screen{display:none;flex:1;flex-direction:column}.screen.on{display:flex}
-.big{font-size:5rem;font-weight:800;text-align:center;word-break:break-word;line-height:1.1}
-.card{background:var(--card);border-radius:20px;padding:24px 12px;margin:14px 0;text-align:center;flex:1;display:flex;flex-direction:column;justify-content:center}
-.top{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-weight:800;font-size:1.8rem}
-.bar{height:8px;background:#3a322b;border-radius:4px;overflow:hidden;margin-top:8px}
-.bar i{display:block;height:100%;background:var(--ac);width:100%}
+button{font:inherit;font-weight:700;border:0;border-radius:16px;padding:16px;color:#1a1020;background:linear-gradient(180deg,var(--ac2),var(--ac));font-size:1.05rem;box-shadow:0 4px 0 color-mix(in srgb,var(--ac) 55%,#000),0 8px 18px rgba(0,0,0,.35)}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--ac) 55%,#000)}
+button.alt{background:var(--card);color:var(--tx);border:2px solid var(--line);box-shadow:none}
+button.sel{border-color:var(--ac);color:var(--ac2)}
+button.ok{background:linear-gradient(180deg,#3fd582,#22a45a);color:#fff;box-shadow:0 4px 0 #166b3a,0 8px 18px rgba(0,0,0,.35)}
+button.no{background:linear-gradient(180deg,#8d8d9c,#64646f);color:#fff;box-shadow:0 4px 0 #43434c,0 8px 18px rgba(0,0,0,.35)}
+button:disabled{opacity:.5}
+.screen{display:none;flex:1;flex-direction:column;min-height:0}.screen.on{display:flex}
 .mu{color:var(--mu);font-size:.85rem}
-.fp{font-weight:800;color:var(--ac);letter-spacing:.15em}
-.qr{background:#fff;border-radius:16px;padding:14px;margin:12px auto;width:min(260px,100%);display:none}
+.fp{font-weight:800;color:var(--ac2);letter-spacing:.15em}
+/* logo + ticket */
+.logo{display:flex;justify-content:center;gap:5px;margin:22px 0 8px}
+.lt{width:38px;height:44px;border-radius:7px;background:linear-gradient(160deg,#f7e6bd,#e4c887);color:#3b2a14;font-weight:900;font-size:1.5rem;display:grid;place-items:center;box-shadow:0 3px 0 #a98a4c,0 6px 10px rgba(0,0,0,.4);transform:rotate(var(--r))}
+.lt:nth-child(even){background:linear-gradient(160deg,var(--ac2),var(--ac));color:#1a1020;box-shadow:0 3px 0 color-mix(in srgb,var(--ac) 50%,#000),0 6px 10px rgba(0,0,0,.4)}
+.tag{text-align:center;color:var(--mu);letter-spacing:.25em;font-size:.7rem;margin-bottom:6px}
+.ticket{position:relative;border-radius:18px;padding:14px 14px 16px;background:linear-gradient(135deg,var(--ac),color-mix(in srgb,var(--ac) 45%,#2a1740));color:#1a1020;
+ -webkit-mask:radial-gradient(circle 11px at 0 54px,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 11px at 100% 54px,#0000 97%,#000) right/51% 100% no-repeat;
+ mask:radial-gradient(circle 11px at 0 54px,#0000 97%,#000) left/51% 100% no-repeat,radial-gradient(circle 11px at 100% 54px,#0000 97%,#000) right/51% 100% no-repeat}
+.ticket .th{display:flex;justify-content:space-between;font-size:.7rem;font-weight:800;letter-spacing:.18em;padding:0 8px 22px;border-bottom:2px dashed rgba(26,16,32,.45)}
+.ticket .tb{display:flex;gap:10px;margin-top:14px}
+input.code{flex:1;min-width:0;text-transform:uppercase;letter-spacing:.3em;text-align:center;font-size:1.7rem;font-weight:800;font-family:ui-monospace,monospace;background:rgba(255,255,255,.88);color:#1a1020;border:0}
+.ticket button{flex:0 0 auto;background:rgba(26,16,32,.85);color:#fff;box-shadow:none}
+/* stage + card */
+.stage{position:relative;flex:1;display:flex;margin:12px 0;min-height:0}
+.card{flex:1;background:var(--card);border:2px solid var(--line);border-radius:24px;padding:24px 12px;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;box-shadow:0 0 60px -10px color-mix(in srgb,var(--ac) 55%,transparent),inset 0 0 40px rgba(255,255,255,.03);backdrop-filter:blur(4px)}
+.card.pop{animation:pop .28s ease-out}
+@keyframes pop{from{transform:scale(.9) translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.ghost{position:absolute;inset:0;pointer-events:none;z-index:3}
+.ghost.ok{animation:gOk .45s ease-out forwards}
+.ghost.pass{animation:gPass .45s ease-in forwards}
+@keyframes gOk{0%{background:#2fd47a;border-color:#2fd47a;opacity:1;transform:none}35%{background:#2fd47a;opacity:1}100%{background:#2fd47a;opacity:0;transform:scale(1.07)}}
+@keyframes gPass{0%{background:#8a8a96;opacity:1;transform:none}30%{background:#8a8a96;opacity:1;transform:none}100%{background:#8a8a96;opacity:0;transform:translateX(-120%) rotate(-8deg)}}
+.word{font-size:clamp(2.4rem,13vw,4rem);font-weight:900;letter-spacing:.04em;color:var(--ac2);word-break:break-word;line-height:1.1}
+.tile{position:relative;width:min(52vw,230px);aspect-ratio:1;border-radius:18px;background:linear-gradient(155deg,#f9ebc7,#e2c47f);color:#3b2a14;display:grid;place-items:center;box-shadow:0 8px 0 #a98a4c,0 16px 28px rgba(0,0,0,.5),inset 0 0 0 4px rgba(255,255,255,.35)}
+.tile b{font-size:min(34vw,150px);font-weight:900;line-height:1}
+.tile sub{position:absolute;right:14px;bottom:10px;font-size:1.5rem;font-weight:800}
+/* ring + pips */
+.hud{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:10px}
+.ringwrap{position:relative;width:104px;height:104px}
+.ringwrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.trk{fill:none;stroke:rgba(255,255,255,.12);stroke-width:9}
+.prg{fill:none;stroke:var(--ac);stroke-width:9;stroke-linecap:round;stroke-dasharray:326.7;stroke-dashoffset:0;transition:stroke .4s}
+#tm{position:absolute;inset:0;display:grid;place-items:center;font-size:2.3rem;font-weight:900}
+.ringwrap.urgent .prg{stroke:#ff3b3b}
+.ringwrap.urgent{animation:pulse .5s ease-in-out infinite alternate;color:#ff6b6b}
+@keyframes pulse{from{transform:scale(1);filter:drop-shadow(0 0 0 #ff3b3b)}to{transform:scale(1.09);filter:drop-shadow(0 0 14px #ff3b3b)}}
+.pips{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
+.pips i{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);background:transparent;transition:.25s}
+.pips i.on{background:var(--ac);border-color:var(--ac2);box-shadow:0 0 10px var(--ac);transform:scale(1.15)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.btns button{padding:0;height:clamp(84px,18vh,130px);font-size:1.4rem}
+/* misc */
+.big{font-size:4.5rem;font-weight:900;text-align:center}
+#cd{font-size:2rem;font-weight:800;text-align:center}
+#cd.num{font-size:9rem;color:var(--ac2)}
+#cd.cdpop{animation:cdpop 1s ease-out}
+@keyframes cdpop{0%{transform:scale(.4);opacity:0}25%{transform:scale(1);opacity:1}100%{transform:scale(1.7);opacity:0}}
+.qr{background:#fff;border-radius:16px;padding:14px;margin:8px auto;width:min(240px,100%);display:none}
 .qr svg,.qr img,.qr canvas{width:100%!important;height:auto!important;display:block}
-.rules{text-align:left;font-size:1.05rem;line-height:1.5;padding:8px 6px}.rules li{margin:10px 0}
-.url{word-break:break-all;font-size:.75rem;color:var(--mu);text-align:center}
-.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 10px}
-.btns button{padding:26px 8px;font-size:1.3rem}
+.rules{text-align:left;font-size:1.05rem;line-height:1.5;padding:0 6px;margin:0;list-style:none}.rules li{margin:12px 0}
+.url{word-break:break-all;font-size:.7rem;color:var(--mu);text-align:center}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:9}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition:none!important}}
 </style>
 </head>
-<body>
+<body class="role-give">
+<canvas id="cf"></canvas>
+<div class="app">
 
 <div id="setup" class="screen on">
-  <h1>Password</h1>
-  <p class="s">Two phones, one room code. Enter the same code on both.</p>
-  <label>Room seed code</label>
-  <div class="row"><input id="code" class="code" maxlength="20" placeholder="CODE" autocapitalize="characters"><button class="alt" id="rnd" style="flex:0 0 auto">🎲</button></div>
+  <div class="logo" id="logo"></div>
+  <div class="tag">TWO PLAYERS · ONE ROOM CODE</div>
+  <label>Room</label>
+  <div class="ticket">
+    <div class="th"><span>ROOM CODE</span><span>ADMIT TWO ✦</span></div>
+    <div class="tb"><input id="code" class="code" maxlength="20" placeholder="••••••" autocapitalize="characters"><button id="rnd">🎲</button></div>
+  </div>
   <div class="row">
     <div><label>Words to get</label><input id="target" type="number" min="1" max="50" value="10" inputmode="numeric"></div>
     <div><label>Seconds</label><input id="secs" type="number" min="10" max="600" value="60" inputmode="numeric"></div>
@@ -56,7 +112,7 @@ button:active{transform:scale(.97)}
 <div id="ready" class="screen">
   <h1 id="rTitle"></h1>
   <p class="s">Round <b id="rRound"></b> · Check code <span class="fp" id="rFp"></span><br>Both phones must show the same check code. If not, re-enter the seed code and settings.</p>
-  <div class="card"><div class="mu">Both players tap Start together</div><div class="big" id="cd" style="font-size:3rem">Ready?</div></div>
+  <div class="stage"><div class="card" style="justify-content:center"><div class="mu" id="cdl">Both players tap Start together</div><div id="cd">Ready?</div></div></div>
   <div class="row" style="margin-bottom:10px"><button class="alt" id="rulesB">📖 My rules</button><button class="alt" id="qrB">📱 Room QR</button></div>
   <div class="qr" id="qr"></div><div class="url" id="qrUrl"></div>
   <button id="start" style="margin-top:10px">Start</button>
@@ -65,26 +121,30 @@ button:active{transform:scale(.97)}
 
 <div id="rules" class="screen">
   <h1 id="ruT"></h1>
-  <div class="card" style="justify-content:flex-start"><ul class="rules" id="ruL"></ul></div>
+  <div class="card" style="justify-content:flex-start;align-items:stretch;margin:12px 0;flex:1"><ul class="rules" id="ruL"></ul></div>
   <button id="ruBack" style="margin:0 0 16px">Got it – back</button>
 </div>
 
 <div id="play" class="screen">
-  <div class="top"><span id="tm">60</span><span id="sc">0/10</span></div>
-  <div class="bar"><i id="bar"></i></div>
-  <div class="card"><div class="mu" id="lbl"></div><div class="big" id="word"></div></div>
+  <div class="hud">
+    <div class="ringwrap" id="ringw"><svg viewBox="0 0 120 120"><circle class="trk" cx="60" cy="60" r="52"/><circle class="prg" id="prg" cx="60" cy="60" r="52"/></svg><span id="tm">60</span></div>
+    <div class="pips" id="pips"></div>
+    <div class="mu" id="sc"></div>
+  </div>
+  <div class="stage" id="stage"><div class="card" id="card"><div id="cardBody" style="display:contents"></div></div></div>
   <div class="btns"><button class="ok" id="okb">✓ Correct</button><button class="no" id="passb">Pass ⏭</button></div>
   <button class="alt" id="undo" style="margin-bottom:16px">↩ Undo last</button>
 </div>
 
 <div id="result" class="screen">
-  <h1 id="resT"></h1>
-  <div class="card"><div class="big" id="resS"></div><div class="mu" id="resD"></div></div>
+  <h1 id="resT" style="text-align:center"></h1>
+  <div class="stage"><div class="card"><div class="big" id="resS"></div><div class="mu" id="resD"></div></div></div>
   <button id="next">Next round (swap roles)</button>
   <button class="alt" id="again" style="margin:10px 0">Replay this round</button>
   <button class="alt" id="menu" style="margin-bottom:16px">Change settings</button>
 </div>
 
+</div>
 <script src="qrcode.js"></script>
 <script src="room-seeder.js"></script>
 <script>
@@ -92,12 +152,15 @@ const WORDS=`apple anchor angel arrow attic autumn bacon badge bakery balloon ba
 angry ancient bright brave busy calm careful clever cold cozy crazy cruel curious dark dirty dizzy dry eager empty fancy fast fierce fragile friendly funny gentle giant greedy grumpy happy heavy honest hungry icy jealous kind lazy lonely loud lucky messy mighty narrow noisy nervous polite proud quiet rich rough rude sad scary shiny shy silly sleepy slippery smooth sneaky sour spicy sticky strange sweet tall tiny tired ugly wet wild wise
 adventure alarm argument audience balance battle birthday blizzard budget captain career carnival chapter charity chorus coach comedy contest cousin crisis danger debate dream earthquake echo energy escape evening exam fantasy festival freedom friend future giggle glory habit holiday honor hunger idea journey judge justice kingdom language laughter legend lesson magic memory message mission mystery nightmare ocean office opinion paradise passport patience picnic poem prison promise puzzle rumor secret season silence slumber souvenir spirit sunrise surprise talent theater thief tradition trouble vacation victory voyage weekend whisper wisdom wonder
 bake bounce climb dance dig dive drift float gallop hike jump juggle kneel march paint race roar sail skate sleep slide sneeze spin splash swim tickle whisper wiggle yawn`.split(/\s+/);
-
 const $=id=>document.getElementById(id);
 const show=id=>{document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id))};
+const PTS={A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
+const CIRC=326.7;
 let S={role:'give',round:1,deck:[],i:0,score:0,hist:[],end:0,total:60,target:10,tick:null,code:''};
 
-function setRole(r){S.role=r;$('rGive').classList.toggle('sel',r==='give');$('rGuess').classList.toggle('sel',r==='guess')}
+$('logo').innerHTML='PASSWORD'.split('').map((l,i)=>`<div class="lt" style="--r:${[-4,3,-2,4,-3,2,-4,3][i]}deg">${l}</div>`).join('');
+
+function setRole(r){S.role=r;document.body.className='role-'+r;$('rGive').classList.toggle('sel',r==='give');$('rGuess').classList.toggle('sel',r==='guess')}
 $('rGive').onclick=()=>setRole('give');$('rGuess').onclick=()=>setRole('guess');
 $('rnd').onclick=()=>{$('code').value=RoomSeeder.randomCode()};
 
@@ -108,7 +171,8 @@ function prep(){
   S.i=0;S.score=0;S.hist=[];
   $('rTitle').textContent=S.role==='give'?'🗣 You are the Clue-giver':'🤔 You are the Guesser';
   $('rRound').textContent=S.round;$('rFp').textContent=RoomSeeder.fingerprint(S.deck)+'-'+S.target+'/'+S.total;
-  $('qr').style.display='none';$('qrUrl').textContent='';$('cd').textContent='Ready?';$('start').disabled=false;
+  $('qr').style.display='none';$('qrUrl').textContent='';
+  const cd=$('cd');cd.className='';cd.textContent='Ready?';$('cdl').style.display='';$('start').disabled=false;
   show('ready');
 }
 $('go').onclick=()=>{if(!RoomSeeder.normalize($('code').value)){$('code').focus();return}S.round=1;prep()};
@@ -117,24 +181,18 @@ $('menu').onclick=()=>show('setup');
 $('again').onclick=prep;
 $('next').onclick=()=>{S.round++;setRole(S.role==='give'?'guess':'give');prep()};
 
-$('start').onclick=()=>{
-  $('start').disabled=true;let n=3;$('cd').textContent=n;
-  const c=setInterval(()=>{n--;if(n>0)$('cd').textContent=n;else{clearInterval(c);begin()}},1000);
-};
 function rulesFor(r){
-  const g=[`You see the <b>full word</b>. Your partner sees only its <b>first letter</b>.`,
+  const end=[`Goal: <b>${S.target} words</b> in <b>${S.total} seconds</b>, one shared clock.`,
+  `Tap Start at the same moment as your partner, and tap in step with them.`];
+  return (r==='give'?[
+  `You see the <b>full word</b>. Your partner sees only its <b>first letter</b>.`,
   `Give <b>one-word clues</b>, one at a time. Your partner guesses out loud.`,
   `No part of the word, no rhymes, no spelling or letter hints, no gestures.`,
-  `Tap <b>✓ Correct</b> when they get it, or <b>Pass</b> to skip a tough one.`,
-  `Goal: <b>${S.target} words</b> in <b>${S.total} seconds</b>, one shared clock.`,
-  `Tap Start at the same moment as your partner, and tap in step with them.`];
-  const q=[`You see only the <b>first letter</b> of the secret word.`,
+  `Tap <b>✓ Correct</b> when they get it, or <b>Pass</b> to skip a tough one.`]:[
+  `You see only the <b>first letter</b> of the secret word.`,
   `Your partner gives <b>one-word clues</b>. Guess out loud as often as you like.`,
   `Use the letter to narrow it down – it's the start of the word.`,
-  `Tap <b>✓ Got it</b> when you're right, or <b>Pass</b> if your partner skips.`,
-  `Goal: <b>${S.target} words</b> in <b>${S.total} seconds</b>, one shared clock.`,
-  `Tap Start at the same moment as your partner, and tap in step with them.`];
-  return r==='give'?g:q;
+  `Tap <b>✓ Got it</b> when you're right, or <b>Pass</b> if your partner skips.`]).concat(end);
 }
 $('rulesB').onclick=()=>{
   $('ruT').textContent=S.role==='give'?'🗣 Clue-giver rules':'🤔 Guesser rules';
@@ -158,8 +216,6 @@ $('qrB').onclick=()=>{
   q.style.display='block';makeQR(q,url);
   $('qrUrl').textContent=url+(location.protocol==='file:'?'  (file:// links only work if both phones have the file at this same path – host the page for cross-device scanning)':'');
 };
-
-// prefill from room URL (?code=&words=&secs=&role=)
 (function(){
   const u=new URLSearchParams(location.search);
   if(u.get('code'))$('code').value=u.get('code');
@@ -168,37 +224,72 @@ $('qrB').onclick=()=>{
   if(u.get('role'))setRole(u.get('role')==='guess'?'guess':'give');
 })();
 
+// big 3-2-1
+$('start').onclick=()=>{
+  $('start').disabled=true;$('cdl').style.display='none';let n=3;
+  const tick=()=>{const e=$('cd');e.className='';void e.offsetWidth;e.textContent=n;e.className='num cdpop'};
+  tick();
+  const c=setInterval(()=>{n--;if(n>0)tick();else{clearInterval(c);begin()}},1000);
+};
 function begin(){
-  show('play');S.end=Date.now()+S.total*1000;render();
+  show('play');
+  $('pips').innerHTML='<i></i>'.repeat(S.target);
+  S.end=Date.now()+S.total*1000;render(true);
   S.tick=setInterval(()=>{
-    const left=Math.max(0,S.end-Date.now());
-    $('tm').textContent=Math.ceil(left/1000);$('bar').style.width=(left/(S.total*10))+'%';
+    const left=Math.max(0,S.end-Date.now()),sec=Math.ceil(left/1000);
+    $('tm').textContent=sec;
+    $('prg').style.strokeDashoffset=CIRC*(1-left/(S.total*1000));
+    $('ringw').classList.toggle('urgent',sec<=10);
     if(left<=0)finish(false);
   },100);
+  $('prg').style.strokeDashoffset=0;$('ringw').classList.remove('urgent');$('tm').textContent=S.total;
 }
 function cur(){return S.deck[S.i%S.deck.length]}
-function render(){
-  $('sc').textContent=S.score+'/'+S.target;
-  if(S.role==='give'){$('lbl').textContent='Give 1-word clues for:';$('word').textContent=cur().toUpperCase()}
-  else{$('lbl').textContent='The word starts with:';$('word').textContent=cur()[0].toUpperCase()}
+function render(pop){
+  $('sc').textContent=S.score+' / '+S.target;
+  [...$('pips').children].forEach((d,i)=>d.classList.toggle('on',i<S.score));
+  const w=cur(),L=w[0].toUpperCase();
+  $('cardBody').innerHTML=S.role==='give'
+    ?`<div class="mu">Give 1-word clues for</div><div class="word">${w.toUpperCase()}</div>`
+    :`<div class="mu">The word starts with</div><div class="tile"><b>${L}</b><sub>${PTS[L]||1}</sub></div>`;
   $('okb').textContent=S.role==='give'?'✓ Correct':'✓ Got it';
+  if(pop){const c=$('card');c.classList.remove('pop');void c.offsetWidth;c.classList.add('pop')}
+}
+function ghost(kind){
+  const c=$('card'),g=c.cloneNode(true);g.removeAttribute('id');g.className='card ghost '+kind;
+  $('stage').appendChild(g);setTimeout(()=>g.remove(),520);
 }
 function step(ok){
+  ghost(ok?'ok':'pass');
   S.hist.push(ok);S.i++;if(ok)S.score++;
-  if(S.score>=S.target){finish(true);return}
-  render();
+  if(S.score>=S.target){render(false);finish(true);return}
+  render(true);
 }
 $('okb').onclick=()=>step(true);
 $('passb').onclick=()=>step(false);
-$('undo').onclick=()=>{if(!S.hist.length)return;const ok=S.hist.pop();S.i--;if(ok)S.score--;render()};
+$('undo').onclick=()=>{if(!S.hist.length)return;const ok=S.hist.pop();S.i--;if(ok)S.score--;render(true)};
 
 function finish(win){
   clearInterval(S.tick);
   const left=Math.max(0,Math.round((S.end-Date.now())/1000));
   $('resT').textContent=win?'🎉 You did it!':"⏰ Time's up!";
-  $('resS').textContent=S.score+'/'+S.target;
   $('resD').textContent=win?left+'s left on the clock':'Passes: '+S.hist.filter(h=>!h).length;
-  show('result');
+  show('result');countUp($('resS'),S.score);if(win)confetti();
+}
+function countUp(el,to){
+  let n=0;el.textContent='0/'+S.target;if(!to)return;
+  const iv=setInterval(()=>{n++;el.textContent=n+'/'+S.target;if(n>=to)clearInterval(iv)},Math.min(140,800/to));
+}
+function confetti(){
+  const c=$('cf'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+  const cols=['#ff8a2b','#2ec4b6','#ffd166','#ef476f','#ffffff','#a78bfa'];
+  const P=Array.from({length:150},()=>({x:c.width/2,y:c.height*.4,vx:(Math.random()-.5)*18,vy:-Math.random()*17-4,s:5+Math.random()*7,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:cols[Math.random()*cols.length|0]}));
+  let t=0;
+  (function f(){
+    x.clearRect(0,0,c.width,c.height);
+    P.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.vx*=.99;p.r+=p.vr;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);x.restore()});
+    if(++t<170)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);
+  })();
 }
 </script>
 </body>
